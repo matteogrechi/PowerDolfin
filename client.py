@@ -24,7 +24,7 @@ class viewWindow(wx.Frame):
             self.vbox.Add(self.staticBit)
 
             self.timex = wx.Timer(self)
-            self.timex.Start(1000.0/24.0)
+            self.timex.Start(17) #1000/24)
             self.Bind(wx.EVT_TIMER, self.redraw)
         else:
             print("Error no webcam image")
@@ -32,7 +32,7 @@ class viewWindow(wx.Frame):
         # Keyboard
         self.pnl.Bind(wx.EVT_KEY_DOWN, self.keyDown)
         self.pnl.Bind(wx.EVT_KEY_UP, self.keyUp)
-        self.kd = None
+        self.keyDown = None
         self.keyDict = {
                 72 : "H",
                 74 : "J",
@@ -41,10 +41,10 @@ class viewWindow(wx.Frame):
                 70 : "F"
         }
         self.action = {
-            "H" : {"on" : "", "off" : ""},
-            "J" : {"on" : "", "off" : ""},
-            "K" : {"on" : "", "off" : ""},
-            "L" : {"on" : "", "off" : ""},
+            "H" : {"on" : "fe:0b:c9:ff:be:45:00:00:88:13:00:00:18:fc:00:00:04:b0:ae", "off" : "fe:0b:ec:ff:be:45:00:00:88:13:00:00:00:00:00:00:04:bd:c8"},
+            "J" : {"on" : "fe:0b:ba:ff:be:45:db:fe:88:13:00:00:00:00:00:00:04:12:27", "off" : "fe:0b:c8:ff:be:45:2a:fc:88:13:00:00:00:00:00:00:04:17:a6"},
+            "K" : {"on" : "fe:0b:1e:ff:be:45:67:00:88:13:00:00:00:00:00:00:04:5a:7a", "off" : "fe:0b:45:ff:be:45:00:00:88:13:00:00:00:00:00:00:04:7d:79"},
+            "L" : {"on" : "fe:0b:20:ff:be:45:00:00:88:13:00:00:6f:03:00:00:04:f8:a5", "off" : "fe:0b:22:ff:be:45:00:00:88:13:00:00:00:00:00:00:04:3d:16"}, # ?
             "F" : {"on" : "fe:04:07:ff:be:aa:64:00:00:00:f5:81", "off" : "fe:04:45:ff:be:aa:00:00:00:00:cf:70"}
         }
 
@@ -70,10 +70,11 @@ class viewWindow(wx.Frame):
             self.Refresh()
     
     def keyDown(self, e):
-        if self.kd == None:
+        if self.keyDown == None:
             key = e.GetKeyCode()
-            self.kd = self.keyDict.get(key,None)
-            self.sendCommand(self.action[self.kd]["on"])
+            self.keyDown = self.keyDict.get(key,None)
+            if self.keyDown != None:
+                self.sendCommand(self.action[self.keyDown]["on"])
         
         
        # box = wx.MessageDialog(None, 'Do you like this blog?', 'Titolo box',wx.YES_NO) #Il box appare con due possibili scelte, Yes o No, in alternativa potete utilizzare il parametro wx.OK apparirà un'unica scelta, quella di pigiare il tasto OK.
@@ -81,12 +82,14 @@ class viewWindow(wx.Frame):
         #box.Destroy()
     
     def keyUp(self, e):
-        self.sendCommand(self.action[self.kd]["off"])
-        self.kd = None
+        if self.keyDown != None:
+            self.sendCommand(self.action[self.keyDown]["off"])
+            self.keyDown = None
 
     def sendCommand(self, command):
-        myBytes = bytes.fromhex(command.replace(":"," "))
-        self.commandConnection.send(myBytes)
+        if command != None:
+            myBytes = bytes.fromhex(command.replace(":"," "))
+            self.commandConnection.send(myBytes)
 
 def main():
     app = wx.App()
