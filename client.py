@@ -9,9 +9,11 @@ class viewWindow(wx.Frame):
         wx.Panel.__init__(self, parent, wx.ID_ANY)
         self.pnl = wx.Panel(self)
         # Connecting to the camera
+        #videoStream = "rtsp://rtsp.stream/pattern"
         #videoStream = "rtsp://wowzaec2demo.streamlock.net/vod/mp4:BigBuckBunny_115k.mp4"
         videoStream = "rtsp://192.168.1.10:554/livestream/12"
         self.capture = cv2.VideoCapture(videoStream)
+        self.capture.set(cv2.CAP_PROP_BUFFERSIZE, 25)
         ret, self.frame = self.capture.read()
         if ret:
             self.wSize = self.frame.shape[:2]
@@ -49,17 +51,19 @@ class viewWindow(wx.Frame):
         }
 
         # Command transmission connection
-        cmdSocketAddress = ["192.168.1.12", 20002]
-        self.commandConnection = socket.create_connection(cmdSocketAddress)
+        '''cmdSocketAddress = ["192.168.1.12", 20002]
+        self.commandConnection = socket.create_connection(cmdSocketAddress)'''
 
         #
         self.pnl.SetSizer(self.vbox)
         self.vbox.Fit(self)
         self.Show()
         #self.pnl.SetFocus()
-
+    
     def __del__(self):
-        self.commandConnection.close()
+        if self.commandConnection != None:
+            self.commandConnection.close()
+    
 
     def redraw(self,e):
         ret, self.frame = self.capture.read()
@@ -87,9 +91,11 @@ class viewWindow(wx.Frame):
             self.keyDown = None
 
     def sendCommand(self, command):
-        if command != None:
-            myBytes = bytes.fromhex(command.replace(":"," "))
-            self.commandConnection.send(myBytes)
+        if self.commandConnection != None:
+            if command != None:
+                myBytes = bytes.fromhex(command.replace(":"," "))
+                self.commandConnection.send(myBytes)
+    
 
 def main():
     app = wx.App()
