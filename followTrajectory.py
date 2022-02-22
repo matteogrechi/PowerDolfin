@@ -1,10 +1,4 @@
-from multiprocessing.connection import wait
-from crear_ordenes import crear_ordenes 
-from cod_principal import interpreta_CSV
-import calcula_despl, csv, cmath
-import matplotlib.pyplot as plt
-import time
-import socket
+import csv, cmath, time, socket
 
 def importCSV():
     with open('path.csv') as File:
